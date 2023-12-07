@@ -11,23 +11,23 @@ public class Main {
 
     public static void main(String[] args) {
         Test[] tests = {
-//                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test1", 5),
-//                new Test(4, SchedulingAlgorithm.ROUND_ROBIN, 15, "RR_Test2", 5),
-//                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 15, "RR_Test3", 10),
-//                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test4", 5),
-//                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test5", 5),
-//                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 17, "SQ_Test1", 5),
-//                new Test(3, SchedulingAlgorithm.SHORTEST_QUEUE, 15, "SQ_Test2", 5),
-//                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test3", 10),
-//                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test4", 5),
-//                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test5", 5),
-//                new Test(3, SchedulingAlgorithm.SIZE_INTERVAL_TASK_ASSIGNMENT, 15, "SITA_Test1", 10),
-//                new Test(3, SchedulingAlgorithm.SIZE_INTERVAL_TASK_ASSIGNMENT, 15, "SITA_Test2", 10),
+                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test1", 5),
+                new Test(4, SchedulingAlgorithm.ROUND_ROBIN, 15, "RR_Test2", 5),
+                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 15, "RR_Test3", 10),
+                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test4", 5),
+                new Test(2, SchedulingAlgorithm.ROUND_ROBIN, 14, "RR_Test5", 5),
+                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 17, "SQ_Test1", 5),
+                new Test(3, SchedulingAlgorithm.SHORTEST_QUEUE, 15, "SQ_Test2", 5),
+                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test3", 10),
+                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test4", 5),
+                new Test(2, SchedulingAlgorithm.SHORTEST_QUEUE, 16, "SQ_Test5", 5),
+                new Test(3, SchedulingAlgorithm.SIZE_INTERVAL_TASK_ASSIGNMENT, 15, "SITA_Test1", 10),
+                new Test(3, SchedulingAlgorithm.SIZE_INTERVAL_TASK_ASSIGNMENT, 15, "SITA_Test2", 10),
                 new Test(3, SchedulingAlgorithm.SIZE_INTERVAL_TASK_ASSIGNMENT, 15, "SITA_Test3", 10),
-//                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 16, "LWL_Test1", 5),
-//                new Test(4, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test2", 5),
-//                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test3", 10),
-//                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test4", 10),
+                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 16, "LWL_Test1", 5),
+                new Test(4, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test2", 5),
+                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test3", 10),
+                new Test(2, SchedulingAlgorithm.LEAST_WORK_LEFT, 15, "LWL_Test4", 10),
         };
 
         // set a grace period to wait for the results
@@ -70,7 +70,7 @@ public class Main {
 
         // initialize the task generators
         List<TaskGenerator> generators = new ArrayList<>();
-        File[] dir = new File("checker" + File.separator + "in" + File.separator + test.inFolder).listFiles();
+        File[] dir = new File("in" + File.separator + test.inFolder).listFiles();
         if (dir != null) {
             for (File input : dir) {
                 if (input.getName().startsWith("in")) {
@@ -129,7 +129,7 @@ public class Main {
 
         // verify the result of this test
         try {
-            String output = new Scanner(new File("checker" + File.separator + "in" + File.separator + test.inFolder + File.separator + "out")).useDelimiter("\\Z").next();
+            String output = new Scanner(new File("in" + File.separator + test.inFolder + File.separator + "out")).useDelimiter("\\Z").next();
             if (!result.toString().startsWith(output)) {
                 System.out.println("Test failed... Output is:");
                 System.out.println(result);

@@ -1,11 +1,9 @@
 /* Implement this class. */
-import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class MyHost extends Host {
     // Create blocking queue
     private final PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(11, (t1, t2) -> Integer.compare(t2.getPriority(), t1.getPriority()));
-
     volatile double finishTime = 0;
     volatile Task workingTask = null;
     volatile Boolean stop = false;
@@ -38,6 +36,10 @@ public class MyHost extends Host {
     public synchronized void addTask(Task task) {
         // Add the task to the queue
         queue.offer(task);
+
+        // Print queue until now
+//        System.out.println("Host: " + this);
+//        System.out.println("Queue: " + queue);
 
         // Check if the working task is preemptive
         if (workingTask != null && workingTask.isPreemptible()) {
