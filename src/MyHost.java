@@ -1,9 +1,11 @@
 /* Implement this class. */
+import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class MyHost extends Host {
     // Create blocking queue
-    private final PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>();
+    private volatile PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(11, (t1, t2) -> Integer.compare(t2.getPriority(), t1.getPriority()));
+
     double finishTime = 0;
     Task task = null;
     Boolean stop = false;
@@ -14,8 +16,8 @@ public class MyHost extends Host {
         while (!stop) {
             if (!queue.isEmpty()) {
                 try {
-                    finishTime = Timer.getTimeDouble();
                     task = queue.take();
+                    finishTime = Timer.getTimeDouble();
 
                     // Print the task
                     System.out.println("Running task " + task.getId() + " on host " + this.getId());
@@ -28,7 +30,7 @@ public class MyHost extends Host {
                     task = null;
                 } catch (InterruptedException e) {
                     // Compute the time elapsed since the task was started
-                    long elapsedTime = Math.round(Timer.getTimeDouble() - finishTime) * 1000;
+                    long elapsedTime = Math.round((Timer.getTimeDouble() - finishTime) * 1000);
                     task.setLeft(task.getDuration() - elapsedTime);
                     queue.offer(task);
                 }
@@ -44,13 +46,13 @@ public class MyHost extends Host {
 
     @Override
     public int getQueueSize() {
-       synchronized (queue) {
-           if (task != null) {
-               return queue.size() + 1;
-           } else {
-               return queue.size();
-           }
-       }
+        synchronized (queue) {
+            if (task != null) {
+                return queue.size() + 1;
+            } else {
+                return queue.size();
+            }
+        }
     }
 
     @Override

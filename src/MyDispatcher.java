@@ -13,6 +13,8 @@ public class MyDispatcher extends Dispatcher {
     public void addTask(Task task) {
         // Firstly find the host with the smallest queue size
         for (Host h : hosts) {
+            // Print the queue size of each host
+            System.out.println("Host " + h.getId() + " has queue size " + h.getQueueSize());
             if (h.getQueueSize() < minQueueSize) {
                 minQueueSize = h.getQueueSize();
             }
