@@ -70,7 +70,7 @@ public class Main {
 
         // initialize the task generators
         List<TaskGenerator> generators = new ArrayList<>();
-        File[] dir = new File("in" + File.separator + test.inFolder).listFiles();
+        File[] dir = new File("checker" + File.separator + "in" + File.separator + test.inFolder).listFiles();
         if (dir != null) {
             for (File input : dir) {
                 if (input.getName().startsWith("in")) {
@@ -129,7 +129,7 @@ public class Main {
 
         // verify the result of this test
         try {
-            String output = new Scanner(new File("in" + File.separator + test.inFolder + File.separator + "out")).useDelimiter("\\Z").next();
+            String output = new Scanner(new File("checker" + File.separator + "in" + File.separator + test.inFolder + File.separator + "out")).useDelimiter("\\Z").next();
             if (!result.toString().startsWith(output)) {
                 System.out.println("Test failed... Output is:");
                 System.out.println(result);

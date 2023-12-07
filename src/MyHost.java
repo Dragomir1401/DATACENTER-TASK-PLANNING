@@ -6,17 +6,12 @@ public class MyHost extends Host {
     // Create blocking queue
     private final PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(11, (t1, t2) -> Integer.compare(t2.getPriority(), t1.getPriority()));
 
-    double finishTime = 0;
-    Task workingTask = null;
-    Boolean stop = false;
+    volatile double finishTime = 0;
+    volatile Task workingTask = null;
+    volatile Boolean stop = false;
 
     @Override
     public void run() {
-        // Print all the tasks in the queue
-        for (Task task : queue) {
-            System.out.println(task);
-        }
-        
         // Make the host busy for the duration of the task
         while (!stop) {
             if (!queue.isEmpty()) {
@@ -40,7 +35,7 @@ public class MyHost extends Host {
     }
 
     @Override
-    public void addTask(Task task) {
+    public synchronized void addTask(Task task) {
         // Add the task to the queue
         queue.offer(task);
 
@@ -55,7 +50,7 @@ public class MyHost extends Host {
     }
 
     @Override
-    public int getQueueSize() {
+    public synchronized int getQueueSize() {
         synchronized (queue) {
             if (workingTask != null) {
                 return queue.size() + 1;
@@ -66,14 +61,21 @@ public class MyHost extends Host {
     }
 
     @Override
-    public long getWorkLeft() {
+    public synchronized long getWorkLeft() {
+        long workLeft = 0;
         synchronized (queue) {
-            long workLeft = 0;
-            for (Task task : queue) {
-                workLeft += task.getDuration();
+            // Compute the work left of the working task
+            if (workingTask != null) {
+                workLeft += workingTask.getDuration() - (Math.round(Timer.getTimeDouble() - finishTime) * 1000);
             }
-            return workLeft;
+
+            // Add all the tasks' work left from the queue except the working task
+            for (Task task : queue) {
+                workLeft += task.getLeft();
+            }
         }
+
+        return workLeft;
     }
 
     @Override
