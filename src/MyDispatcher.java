@@ -3,6 +3,7 @@
 import java.util.List;
 
 public class MyDispatcher extends Dispatcher {
+    int minQueueSize = Integer.MAX_VALUE;
 
     public MyDispatcher(SchedulingAlgorithm algorithm, List<Host> hosts) {
         super(algorithm, hosts);
@@ -10,8 +11,7 @@ public class MyDispatcher extends Dispatcher {
 
     @Override
     public void addTask(Task task) {
-        // Firstly use the Round Robin algorithm to decide the host
-        int minQueueSize = Integer.MAX_VALUE;
+        // Firstly find the host with the smallest queue size
         for (Host h : hosts) {
             if (h.getQueueSize() < minQueueSize) {
                 minQueueSize = h.getQueueSize();
@@ -21,7 +21,12 @@ public class MyDispatcher extends Dispatcher {
         for (Host host : hosts) {
             // Assign task to the host with the smallest queue size
             if (host.getQueueSize() == minQueueSize) {
+                // Add the task to the host
                 host.addTask(task);
+
+                // Reset the minQueueSize
+                minQueueSize = Integer.MAX_VALUE;
+
                 return;
             }
         }
