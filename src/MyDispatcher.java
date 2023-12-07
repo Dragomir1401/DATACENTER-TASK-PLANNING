@@ -24,12 +24,11 @@ public class MyDispatcher extends Dispatcher {
     }
 
     public void addTaskSITA(Task task) {
-        // Add tasks of type X to the host X
+        // Add the task to the host with the same type
         int taskType = task.getType().ordinal();
-
-        // Add the task to the host
         hosts.get(taskType).addTask(task);
     }
+
     public void addTaskLWL(Task task) {
         // Firstly find the host with the least work left
         for (Host h : hosts) {
@@ -52,9 +51,10 @@ public class MyDispatcher extends Dispatcher {
             }
         }
     }
+
     public void addTaskRR(Task task) {
         // Add the task to the host
-        hosts.get((lastHostId + 1) % hosts.size()).addTask(task);
+        hosts.get(lastHostId).addTask(task);
         lastHostId = (lastHostId + 1) % hosts.size();
     }
 
