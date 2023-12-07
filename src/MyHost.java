@@ -14,8 +14,8 @@ public class MyHost extends Host {
         while (!stop) {
             if (!queue.isEmpty()) {
                 try {
-                    task = queue.take();
                     finishTime = Timer.getTimeDouble();
+                    task = queue.take();
 
                     // Print the task
                     System.out.println("Running task " + task.getId() + " on host " + this.getId());
@@ -28,7 +28,7 @@ public class MyHost extends Host {
                     task = null;
                 } catch (InterruptedException e) {
                     // Compute the time elapsed since the task was started
-                    long elapsedTime = Math.round((Timer.getTimeDouble() - finishTime) * 1000);
+                    long elapsedTime = Math.round(Timer.getTimeDouble() - finishTime) * 1000;
                     task.setLeft(task.getDuration() - elapsedTime);
                     queue.offer(task);
                 }
