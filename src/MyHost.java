@@ -4,35 +4,36 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class MyHost extends Host {
     // Create blocking queue
-    private volatile PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(11, (t1, t2) -> Integer.compare(t2.getPriority(), t1.getPriority()));
+    private final PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(11, (t1, t2) -> Integer.compare(t2.getPriority(), t1.getPriority()));
 
     double finishTime = 0;
-    Task task = null;
+    Task workingTask = null;
     Boolean stop = false;
 
     @Override
     public void run() {
+        // Print all the tasks in the queue
+        for (Task task : queue) {
+            System.out.println(task);
+        }
+        
         // Make the host busy for the duration of the task
         while (!stop) {
             if (!queue.isEmpty()) {
                 try {
-                    task = queue.take();
+                    workingTask = queue.take();
                     finishTime = Timer.getTimeDouble();
 
                     // Print the task
-                    System.out.println("Running task " + task.getId() + " on host " + this.getId());
-
-                    sleep(task.getLeft());
+                    sleep(workingTask.getLeft());
+                    workingTask.setLeft(0);
 
                     // Finish the task
-                    task.finish();
-                    task.setLeft(0);
-                    task = null;
+                    workingTask.finish();
+                    workingTask = null;
                 } catch (InterruptedException e) {
-                    // Compute the time elapsed since the task was started
-                    long elapsedTime = Math.round((Timer.getTimeDouble() - finishTime) * 1000);
-                    task.setLeft(task.getDuration() - elapsedTime);
-                    queue.offer(task);
+                    workingTask.setLeft(workingTask.getDuration() - (Math.round(Timer.getTimeDouble() - finishTime) * 1000));
+                    queue.offer(workingTask);
                 }
             }
         }
@@ -40,14 +41,23 @@ public class MyHost extends Host {
 
     @Override
     public void addTask(Task task) {
-        // Print what task is added
+        // Add the task to the queue
         queue.offer(task);
+
+        // Check if the working task is preemptive
+        if (workingTask != null && workingTask.isPreemptible()) {
+            // Check if the entering task has higher priority
+            if (task.getPriority() > workingTask.getPriority()) {
+                // Interrupt the working task
+                this.interrupt();
+            }
+        }
     }
 
     @Override
     public int getQueueSize() {
         synchronized (queue) {
-            if (task != null) {
+            if (workingTask != null) {
                 return queue.size() + 1;
             } else {
                 return queue.size();

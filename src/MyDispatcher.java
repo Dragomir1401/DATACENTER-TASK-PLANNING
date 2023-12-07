@@ -4,6 +4,7 @@ import java.util.List;
 
 public class MyDispatcher extends Dispatcher {
     int minQueueSize = Integer.MAX_VALUE;
+    int lastHostId = 0;
 
     public MyDispatcher(SchedulingAlgorithm algorithm, List<Host> hosts) {
         super(algorithm, hosts);
@@ -11,10 +12,24 @@ public class MyDispatcher extends Dispatcher {
 
     @Override
     public void addTask(Task task) {
+        // Switch between the scheduling algorithms
+        switch (algorithm) {
+            case ROUND_ROBIN -> addTaskRR(task);
+            case SHORTEST_QUEUE -> addTaskSQ(task);
+            default -> System.out.println("Invalid scheduling algorithm.");
+        }
+    }
+
+    public void addTaskRR(Task task) {
+        // Add the task to the host
+        hosts.get((lastHostId + 1) % hosts.size()).addTask(task);
+        lastHostId = (lastHostId + 1) % hosts.size();
+    }
+
+    public void addTaskSQ(Task task) {
         // Firstly find the host with the smallest queue size
         for (Host h : hosts) {
             // Print the queue size of each host
-            System.out.println("Host " + h.getId() + " has queue size " + h.getQueueSize());
             if (h.getQueueSize() < minQueueSize) {
                 minQueueSize = h.getQueueSize();
             }
