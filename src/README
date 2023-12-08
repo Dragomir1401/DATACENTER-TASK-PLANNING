@@ -1,4 +1,323 @@
+______________________________
+|                            |
+|   Copyright                |
+|      Dragomir Andrei 2023  |
+|                            |
+|____________________________|
 
+---------------------------------------------------------------------
+Nume: Dragomir Andrei
+Grupa: 332CA
+
+PARALLEL AND DISTRIBUTED ALGORITHMS
+
+----------------------------------------------------------------------------
+------------------------DATACENTER TASK PLANNING----------------------------
+----------------------------------------------------------------------------
+
+			CONTENT
+
+	- MyDispatcher.java - the task scheduler.
+
+	- MyHost.java - the task executor.
+
+	- Additional skeleton files.
+
+	- README.
+
+
+----------------------------------------------------------------------------
+
+____________Description___________
+
+    The program is a task scheduling system that uses different algorithms
+to program tasks on hosts. The program is written in Java and uses the Java
+concurrency library to implement the multithreading part.
+
+    In this project, we simulate an architecture that uses two main components:
+
+-Dispatcher (or Load Balancer):
+    The dispatcher's primary function is to receive tasks arriving in the
+    system (e.g., from data center clients) and distribute them to data center
+    nodes based on predefined policies.
+
+-Nodes:
+    These nodes are responsible for executing the tasks they receive, based
+    on priority. They can preempt currently running tasks for more critical ones, etc.
+        Each node in the system also maintains a queue to store tasks that will be
+    executed later. The main objective of this project is to implement the logic
+    for both the dispatcher and the computational nodes, ensuring efficient and
+    effective task management and execution within this simulated architecture.
+
+The supported scheduling algorithms are:
+    -- Round Robin (RR)
+    -- Shortest Queue (SQ)
+    -- Least Work Left (LWL)
+    -- Size Interval Task Assignment (SITA)
+
+
+-----------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------
+
+____________Implementation____________
+
+
+    The program is split into two main classes: MyDispatcher and MyHost.
+MyDispatcher is the central unit that manages task distribution across multiple
+host instances. It supports various scheduling algorithms to optimize task
+execution.
+    MyHost represents an individual host that executes tasks. It uses a priority
+blocking queue to manage and execute tasks based on the assigned scheduling
+strategy.
+
+
+    +---------------------+       +-----------------+
+    |     MyDispatcher    |       |     MyHost      |
+    |  (Task Scheduler)   | <---->| (Task Executor) |
+    +---------------------+       +-----------------+
+
+
+    +-------------------------+
+    |     MyDispatcher        |
+    |-------------------------|
+    | + addTask(Task task)    |   // Main method to add tasks
+    | + addTaskRR(Task task)  |   // Implements Round Robin
+    | + addTaskSQ(Task task)  |   // Implements Shortest Queue
+    | + addTaskLWL(Task task) |   // Implements Least Work Left
+    | + addTaskSITA(Task task)|   // Implements SITA
+    +-------------------------+
+
+       addTask(Task task)
+             |
+             V
+       Switch (algorithm)
+             |
+             +--> Round Robin -------+
+             |                       |
+             +--> Shortest Queue ----+--> Add task to host
+             |                       |
+             +--> Least Work Left ---+
+             |                       |
+             +--> SITA --------------+
+
+
+Priority Queue Logic:
+
+    The queue orders tasks based on priority, start time, duration, and ID.
+
+Priority Logic:
+
+    1. Higher priority first
+    2. Earlier start time
+    3. Shorter duration
+    4. Lower ID
+
+    The priority queue uses a comparator to order tasks based on the above
+    criteria. The comparator is implemented as follows:
+
+    private final PriorityBlockingQueue<Task> queue = new PriorityBlockingQueue<>(10, (t1, t2) -> {
+            if (t1.getPriority() == t2.getPriority()) {
+                if (t1.getStart() == t2.getStart()) {
+                    if (Objects.equals(t1.getDuration(), t2.getDuration())) {
+                        return t1.getId() - t2.getId();
+                    } else {
+                        return (int) (t1.getDuration() - t2.getDuration());
+                    }
+                } else {
+                    return t1.getStart() - t2.getStart();
+                }
+            } else {
+                return t2.getPriority() - t1.getPriority();
+            }
+        });
+
+    That meaning it checks the priority of the tasks and if they are equal
+    it checks the start time and so on.
+
+
+Methods and Synchronization:
+
+    +-------------------------------+
+    |           MyHost              |
+    |-------------------------------|
+    | - PriorityBlockingQueue queue |   // Task queue
+    | - volatile double currentTime |   // Execution time tracker
+    | - volatile Task workingTask   |   // Current task
+    | - volatile Boolean stop       |   // Control flag
+    |-------------------------------|
+    | + run()                       |   // Executes tasks
+    | + addTask(Task task)          |   // Adds tasks to queue
+    | + getQueueSize() : int        |   // Gets queue size
+    | + getWorkLeft() : long        |   // Calculates work left
+    | + shutdown()                  |   // Stops the host
+    +-------------------------------+
+
+Execution Logic:
+
+       +-----------------------------------------------------+
+       |                     run() Method                    |
+       +-----------------------------------------------------+
+       |                                                     |
+       |  [Start]                                            |
+       |     |                                               |
+       |     V                                               |
+       |  "While (!stop)" Loop: Checks if the shutdown       |
+       |  method has been called.                            |
+       |     |                                               |
+       |     V                                               |
+       |  "If (!queue.isEmpty())": Checks if there are       |
+       |  tasks in the queue.                                |
+       |     |                                               |
+       |     V                                               |
+       |  "Try" Block: Attempt to execute a task             |
+       |     |                                               |
+       |     V                                               |
+       |  "currentTime = Timer.getTimeDouble()":             |
+       |  Stores the current time before starting            |
+       |  the task execution.                                |
+       |     |                                               |
+       |     V                                               |
+       |  "workingTask = queue.take()": Retrieves            |
+       |  and removes the first task from the queue.         |
+       |     |                                               |
+       |     V                                               |
+       |  "sleep(workingTask.getLeft())": Simulates          |
+       |  the execution of the task by sleeping              |
+       |  for the remaining duration of the task.            |
+       |     |                                               |
+       |     V                                               |
+       |  "workingTask.setLeft(0)": Sets the remaining       |
+       |  time of the task to zero, indicating               |
+       |  completion.                                        |
+       |     |                                               |
+       |     V                                               |
+       |  "workingTask.finish()": Marks the task             |
+       |  as finished.                                       |
+       |     |                                               |
+       |     V                                               |
+       |  "workingTask = null": Clears the reference         |
+       |  to the working task.                               |
+       |     |                                               |
+       |     +-----------------------------------------------+
+       |     |                                               |
+       |  "Catch InterruptedException": Handles              |
+       |  the scenario where the currently executing         |
+       |  task is interrupted.                               |
+       |     |                                               |
+       |     V                                               |
+       |  "Calculate remaining time for interrupted task":   |
+       |  Computes the time left for the interrupted task    |
+       |  to complete.                                       |
+       |     |                                               |
+       |     V                                               |
+       |  "Add interrupted task back to queue":              |
+       |  Puts the interrupted task back into the queue      |
+       |  for later execution.                               |
+       |     |                                               |
+       |     +-----------------------------------------------+
+       |                                                     |
+       |  [End of While Loop]                                |
+       |                                                     |
+       +-----------------------------------------------------+
+
+
+Synchronization:
+
+    The system uses synchronized methods to ensure thread safety,
+    particularly important for addTask and getQueueSize.
+
+Interaction Between Components:
+
+    +---------------------+      +-----------------+
+    |     MyDispatcher    |      |     MyHost      |
+    |---------------------|      |-----------------|
+    |  Distribute tasks   | ---> |  Execute tasks  |
+    |  based on algorithm | <--- |  Provide status |
+    +---------------------+      +-----------------+
+
+    MyDispatcher assigns tasks to MyHost instances based on the
+    selected scheduling algorithm.
+    MyHost executes these tasks and provides feedback on queue size
+    and work left, which influences future task distribution.
+
+
+------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------
+
+_____________Comments_____________
+
+
+	The implementation could have been done faster and better if I
+understood the theoretic part about Java Threads easier and realized
+how to debug threads faster.
+
+    The more complicated part was making sure I handle interrupts and
+send interrupts to threads correctly. I had to debug concurrency issues
+and that was a bit difficult because I had to understand how the threads
+enter one after another in the critical section.
+
+    I believe that Java was a very good choice for this project because
+it allowed clear logic separation between the dispatcher and the hosts and
+also allowed inheritance to be used to make the code more readable. The thread
+API is also very very strong and allows for easy implementations of complex
+algorithms.
+
+    After completing the implementation I can say I have a better
+understanding of how threads work and how to use them to parallelize
+algorithms. I also have a better understanding of the Java thread API
+and how to use it to implement complex algorithms.
+
+
+------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------
+
+
+______________How to run it_____________
+
+
+    javac *.java
+- compiles the program
+
+    java Main
+- runs the program
+
+    ./checker/checker.sh
+- runs the automated test
+
+Note:
+    You need the whole skeleton not just myDispatcher and myHost to run the
+program.
+
+-----------------------------------------------------------------------------
+
+
+
+
+-----------------------------------------------------------------------------
+
+
+Resources:
+
+https://gitlab.cs.pub.ro/apd/tema2
+
+https://www.w3schools.com/java/java_threads.asp
+
+https://stackoverflow.com/questions/66662820/m1-docker-preview-and-keycloak-images-platform-linux-amd64-does-not-match-th
+
+https://curs.upb.ro/2023/pluginfile.php/210012/mod_resource/content/4/APD%20Tema_2%202023.pdf
+
+
+-----------------------------------------------------------------------------
 
 
 
@@ -45,87 +364,3 @@ Size Interval Task Assignment (SITA)
 Method Overview
 plaintext
 Copy code
-+-------------------------+
-|     MyDispatcher        |
-|-------------------------|
-| + addTask(Task task)    |   // Main method to add tasks
-| + addTaskRR(Task task)  |   // Implements Round Robin
-| + addTaskSQ(Task task)  |   // Implements Shortest Queue
-| + addTaskLWL(Task task) |   // Implements Least Work Left
-| + addTaskSITA(Task task)|   // Implements SITA
-+-------------------------+
-Flowchart
-plaintext
-Copy code
-   addTask(Task task)
-         |
-         V
-   Switch (algorithm)
-         |
-         +--> Round Robin -------+
-         |                       |
-         +--> Shortest Queue ----+--> Add task to host
-         |                       |
-         +--> Least Work Left ---+
-         |                       |
-         +--> SITA --------------+
-MyHost Class
-Description
-MyHost represents an individual host that executes tasks. It uses a priority queue to manage and execute tasks based on the assigned scheduling strategy.
-
-Priority Queue Logic
-The queue orders tasks based on priority, start time, duration, and ID.
-
-plaintext
-Copy code
-Priority Logic:
-1. Higher priority first
-2. Earlier start time
-3. Shorter duration
-4. Lower ID
-Methods and Synchronization
-plaintext
-Copy code
-+-------------------------------+
-|           MyHost              |
-|-------------------------------|
-| - PriorityBlockingQueue queue |   // Task queue
-| - volatile double currentTime |   // Execution time tracker
-| - volatile Task workingTask   |   // Current task
-| - volatile Boolean stop       |   // Control flag
-|-------------------------------|
-| + run()                       |   // Executes tasks
-| + addTask(Task task)          |   // Adds tasks to queue
-| + getQueueSize() : int        |   // Gets queue size
-| + getWorkLeft() : long        |   // Calculates work left
-| + shutdown()                  |   // Stops the host
-+-------------------------------+
-Execution Flow
-plaintext
-Copy code
-   run()
-     |
-     +--> Check queue
-     |      |
-     |      +--> Take task from queue
-     |      |      |
-     |      |      +--> Execute task
-     |      |      +--> Finish/Interrupt task
-     |      |
-     |      +--> Repeat
-     |
-     +--> Stop if shutdown
-Synchronization
-The system uses synchronized methods to ensure thread safety, particularly important for addTask and getQueueSize.
-
-Interaction Between Components
-plaintext
-Copy code
-+---------------------+      +-----------------+
-|     MyDispatcher    |      |     MyHost      |
-|---------------------|      |-----------------|
-|  Distribute tasks   | ---> |  Execute tasks  |
-|  based on algorithm | <--- |  Provide status |
-+---------------------+      +-----------------+
-MyDispatcher assigns tasks to MyHost instances based on the selected scheduling algorithm.
-MyHost executes these tasks and provides feedback on queue size and work left, which influences future task distribution.

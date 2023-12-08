@@ -61,20 +61,28 @@ public class MyDispatcher extends Dispatcher {
         Host selectedHost = null;
         long minWorkLeft = Long.MAX_VALUE;
 
-        // Find the host with the least work left, and in case of a tie, select the one with the smaller ID
+        // Store the last checked host id and the host counter
         int lastCheckedHostId = 0;
         int hostCounter = 0;
+
+        // Find the host with the least work left
         for (Host h : hosts) {
             long workLeft = h.getWorkLeft();
+
+            // If the work left of the current host is less than the minimum work left
+            // or the work left of the current host is equal to the minimum work left
+            // and the host counter is less than the last checked host id
+            // then choose the host with smaller work left or same work left but smaller host id
             if (workLeft < minWorkLeft || (workLeft == minWorkLeft && hostCounter < lastCheckedHostId)) {
                 lastCheckedHostId = hostCounter;
                 minWorkLeft = workLeft;
                 selectedHost = h;
             }
+
             hostCounter++;
         }
 
-        // Assign task to the selected host
+        // Assign task to the selected host if it exists
         if (selectedHost != null) {
             selectedHost.addTask(task);
         }
