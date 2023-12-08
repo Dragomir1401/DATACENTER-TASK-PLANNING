@@ -1,0 +1,131 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+README for Task Scheduling System
+This README provides a comprehensive overview of the Task Scheduling System, consisting of two main components: MyDispatcher and MyHost. These classes work together to schedule and execute tasks using different algorithms.
+
+System Overview
+plaintext
+Copy code
++---------------------+       +-----------------+
+|     MyDispatcher    |       |     MyHost      |
+|  (Task Scheduler)   | <---->| (Task Executor) |
++---------------------+       +-----------------+
+MyDispatcher is responsible for distributing tasks to different MyHost instances based on the selected scheduling algorithm.
+
+MyDispatcher Class
+Description
+MyDispatcher is the central unit that manages task distribution across multiple host instances. It supports various scheduling algorithms to optimize task execution.
+
+Scheduling Algorithms
+Round Robin (RR)
+Shortest Queue (SQ)
+Least Work Left (LWL)
+Size Interval Task Assignment (SITA)
+Method Overview
+plaintext
+Copy code
++-------------------------+
+|     MyDispatcher        |
+|-------------------------|
+| + addTask(Task task)    |   // Main method to add tasks
+| + addTaskRR(Task task)  |   // Implements Round Robin
+| + addTaskSQ(Task task)  |   // Implements Shortest Queue
+| + addTaskLWL(Task task) |   // Implements Least Work Left
+| + addTaskSITA(Task task)|   // Implements SITA
++-------------------------+
+Flowchart
+plaintext
+Copy code
+   addTask(Task task)
+         |
+         V
+   Switch (algorithm)
+         |
+         +--> Round Robin -------+
+         |                       |
+         +--> Shortest Queue ----+--> Add task to host
+         |                       |
+         +--> Least Work Left ---+
+         |                       |
+         +--> SITA --------------+
+MyHost Class
+Description
+MyHost represents an individual host that executes tasks. It uses a priority queue to manage and execute tasks based on the assigned scheduling strategy.
+
+Priority Queue Logic
+The queue orders tasks based on priority, start time, duration, and ID.
+
+plaintext
+Copy code
+Priority Logic:
+1. Higher priority first
+2. Earlier start time
+3. Shorter duration
+4. Lower ID
+Methods and Synchronization
+plaintext
+Copy code
++-------------------------------+
+|           MyHost              |
+|-------------------------------|
+| - PriorityBlockingQueue queue |   // Task queue
+| - volatile double currentTime |   // Execution time tracker
+| - volatile Task workingTask   |   // Current task
+| - volatile Boolean stop       |   // Control flag
+|-------------------------------|
+| + run()                       |   // Executes tasks
+| + addTask(Task task)          |   // Adds tasks to queue
+| + getQueueSize() : int        |   // Gets queue size
+| + getWorkLeft() : long        |   // Calculates work left
+| + shutdown()                  |   // Stops the host
++-------------------------------+
+Execution Flow
+plaintext
+Copy code
+   run()
+     |
+     +--> Check queue
+     |      |
+     |      +--> Take task from queue
+     |      |      |
+     |      |      +--> Execute task
+     |      |      +--> Finish/Interrupt task
+     |      |
+     |      +--> Repeat
+     |
+     +--> Stop if shutdown
+Synchronization
+The system uses synchronized methods to ensure thread safety, particularly important for addTask and getQueueSize.
+
+Interaction Between Components
+plaintext
+Copy code
++---------------------+      +-----------------+
+|     MyDispatcher    |      |     MyHost      |
+|---------------------|      |-----------------|
+|  Distribute tasks   | ---> |  Execute tasks  |
+|  based on algorithm | <--- |  Provide status |
++---------------------+      +-----------------+
+MyDispatcher assigns tasks to MyHost instances based on the selected scheduling algorithm.
+MyHost executes these tasks and provides feedback on queue size and work left, which influences future task distribution.
